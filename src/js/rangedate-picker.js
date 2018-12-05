@@ -1,7 +1,7 @@
 import fecha from 'fecha'
 
 const defaultConfig = {}
-const defaultI18n = 'ID'
+const defaultI18n = 'EN'
 const availableMonths = {
   EN: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
     'December'],
@@ -32,8 +32,8 @@ const presetRangeLabel = {
 }
 
 const defaultCaptions = {
-  'title': 'Choose Dates',
-  'ok_button': 'Apply'
+  'ok_button': 'Select Dates',
+  'drop_down': 'All Time'
 }
 
 const defaultStyle = {
@@ -116,6 +116,7 @@ const defaultPresets = function (i18n = defaultI18n) {
     }
   }
 }
+
 
 export default {
   name: 'vue-rangedate-picker',
@@ -244,6 +245,14 @@ export default {
     }
   },
   methods: {
+    cancel: function () {
+      this.clear()
+      this.toggleCalendar()
+    },
+    clear: function () {
+      this.dateRange.start = null
+      this.dateRange.end = null
+    },
     toggleCalendar: function () {
       if (this.isCompact) {
         this.showMonth = !this.showMonth
@@ -359,7 +368,22 @@ export default {
       this.activeYearEnd = this.dateRange.end.getFullYear()
     },
     setDateValue: function () {
-      this.$emit('selected', this.dateRange)
+      if (this.dateRange.start === null && this.dateRange.end === null) {
+        this.captions.drop_down = 'All Time'
+      } else {
+        this.captions.drop_down = this.getDateString(this.dateRange.start) + ' - ' + this.getDateString(this.dateRange.end)
+      }
+
+      // hack, i think days are kept +1 because of indexing - and would take a lot of refactoring
+      var result = this.dateRange
+      if (this.dateRange.start !== undefined && this.dateRange.start !== null) {
+        result.start.setDate(this.dateRange.start.getDate() - 1)
+      } else { result.start = null }
+      if (this.dateRange.end !== undefined && this.dateRange.end !== null) {
+        result.end.setDate(this.dateRange.end.getDate() - 1)
+      } else { result.end = null }
+
+      this.$emit('selected', result)
       if (!this.isCompact) {
         this.toggleCalendar()
       }

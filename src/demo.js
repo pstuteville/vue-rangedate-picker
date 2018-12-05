@@ -14,14 +14,14 @@ import VueRangeDatePicker from './RangedatePicker.vue'
 
 new window.Vue({
   el: 'app',
-  template: `<div id="demo">
+  template: `<div id="demo" style="margin-left: 600px">
 <div>
 <strong>Full form</strong>
-<vue-rangedate-picker></vue-rangedate-picker>
+<vue-rangedate-picker i18n='EN'></vue-rangedate-picker>
 </div>
 <div style="height: 300px">
 <strong>Compact (mobile)</strong>
-<vue-rangedate-picker compact="true"></vue-rangedate-picker>
+<vue-rangedate-picker compact="true" i18n="EN"></vue-rangedate-picker>
 </div>
 </div>`,
   components: { VueRangeDatePicker }
