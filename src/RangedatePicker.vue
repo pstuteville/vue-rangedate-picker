@@ -1,7 +1,7 @@
 <template>
   <div class="calendar-root">
     <div class="input-date" @click="toggleCalendar()">{{captions.drop_down}}</div>
-    <div class="blue-down-arrow"></div>
+    <div class="blue-down-arrow" @click="toggleCalendar()"></div>
     <div class="calendar" :class="{'calendar-mobile ': isCompact, 'calendar-right-to-left': isRighttoLeft}" v-if="isOpen">
       <div class="calendar-wrap">
         <div class="calendar_month_left" :class="{'calendar-left-mobile': isCompact}" v-if="showMonth">
@@ -52,7 +52,7 @@
   .input-date {
     font-size: 14px;
     cursor: pointer;
-    width: 100px;
+    width: 90%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -315,6 +315,7 @@
     top: 14px;
     left: auto;
     right: 10px;
+    cursor: pointer;
   }
 
   .calendar .calendar-head {
