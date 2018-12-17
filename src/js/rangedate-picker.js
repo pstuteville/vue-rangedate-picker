@@ -173,6 +173,14 @@ export default {
     righttoleft: {
       type: String,
       default: 'false'
+    },
+    minDate: {
+      type: Date,
+      default: null
+    },
+    maxDate: {
+      type: Date,
+      default: null
     }
   },
   data () {
@@ -242,6 +250,46 @@ export default {
     },
     isRighttoLeft: function () {
       return this.righttoleft === 'true'
+    },
+    hasRangeSelected: function () {
+      if (this.daterange === {}) {
+        return false
+      }
+      return this.dateRange.start && this.dateRange.end && !this.isOpen
+    },
+    canGoPrevMonth: function () {
+      const prevMonth = new Date(this.activeYearStart, this.activeMonthStart, 0)
+      var notTooEarly = true
+      var notTooLate = true
+
+      console.log('prev check: ' + prevMonth)
+
+      if (this.minDate) {
+        notTooEarly = prevMonth >= this.minDate
+      }
+
+      if (this.maxDate) {
+        notTooLate = prevMonth <= this.maxDate
+      }
+
+      return notTooEarly && notTooLate
+    },
+    canGoNextMonth: function () {
+      const nextMonth = new Date(this.activeYearEnd, this.startNextActiveMonth, 1)
+      var notTooEarly = true
+      var notTooLate = true
+
+      console.log('next check: ' + nextMonth)
+
+      if (this.minDate) {
+        notTooEarly = nextMonth >= this.minDate
+      }
+
+      if (this.maxDate) {
+        notTooLate = nextMonth <= this.maxDate
+      }
+
+      return notTooEarly && notTooLate
     }
   },
   methods: {
@@ -252,6 +300,7 @@ export default {
     clear: function () {
       this.dateRange.start = null
       this.dateRange.end = null
+      this.setDateValue()
     },
     toggleCalendar: function () {
       if (this.isCompact) {
@@ -273,10 +322,37 @@ export default {
       const date = (this.numOfDays * (r - 1)) + i
       return date - startMonthDay
     },
-    getDayCell (r, i, startMonthDay, endMonthDate) {
+    getDayCell (r, i, key, startMonthDay, endMonthDate) {
       const result = this.getDayIndexInMonth(r, i, startMonthDay)
-      // bound by > 0 and < last day of month
-      return result > 0 && result <= endMonthDate ? result : '&nbsp;'
+      if (result > 0 && result <= endMonthDate && this.dateInMinMaxRange(r, i, key, startMonthDay, endMonthDate)) {
+        return result
+      } else {
+        return '&nbsp;'
+      }
+    },
+    dateInMinMaxRange (r, i, key, startMonthDay, endMonthDate) {
+      const result = this.getDayIndexInMonth(r, i, startMonthDay)
+      var notTooEarly = true
+      var notTooLate = true
+      var currMonth = this.activeMonthStart
+      var currYear = this.activeYearStart
+
+      if (key === 'second') {
+        currMonth = this.startNextActiveMonth
+        currYear = this.activeYearEnd
+      }
+
+      var d = new Date(currYear, currMonth, result)
+
+      if (this.minDate) {
+        notTooEarly = d >= this.minDate
+      }
+
+      if (this.maxDate) {
+        notTooLate = d <= this.maxDate
+      }
+
+      return notTooEarly && notTooLate
     },
     getNewDateRange (result, activeMonth, activeYear) {
       const newData = {}
@@ -342,10 +418,14 @@ export default {
       return (this.dateRange.start && this.dateRange.start.getTime() < currDate.getTime()) &&
         (this.dateRange.end && this.dateRange.end.getTime() > currDate.getTime())
     },
-    isDateDisabled (r, i, startMonthDay, endMonthDate) {
+    isDateDisabled (r, i, key, startMonthDay, endMonthDate) {
       const result = this.getDayIndexInMonth(r, i, startMonthDay)
-      // bound by > 0 and < last day of month
-      return !(result > 0 && result <= endMonthDate)
+
+      if (!(result > 0 && result <= endMonthDate)) {
+        return true
+      }
+
+      return !this.dateInMinMaxRange(r, i, key, startMonthDay, endMonthDate)
     },
     goPrevMonth () {
       const prevMonth = new Date(this.activeYearStart, this.activeMonthStart, 0)
@@ -367,12 +447,15 @@ export default {
       this.activeYearStart = this.dateRange.start.getFullYear()
       this.activeYearEnd = this.dateRange.end.getFullYear()
     },
-    setDateValue: function () {
+    updateCaptions: function () {
       if (this.dateRange.start === null && this.dateRange.end === null) {
         this.captions.drop_down = 'All Time'
       } else {
         this.captions.drop_down = this.getDateString(this.dateRange.start) + ' - ' + this.getDateString(this.dateRange.end)
       }
+    },
+    setDateValue: function () {
+      this.updateCaptions()
 
       // hack, i think days are kept +1 because of indexing - and would take a lot of refactoring
       var result = this.dateRange
@@ -384,9 +467,9 @@ export default {
       } else { result.end = null }
 
       this.$emit('selected', result)
-      if (!this.isCompact) {
-        this.toggleCalendar()
-      }
+
+      this.isOpen = false
+      this.showMonth = false
     }
   }
 }

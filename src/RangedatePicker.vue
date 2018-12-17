@@ -1,28 +1,31 @@
 <template>
-  <div class="calendar-root">
+  <div class="calendar-root" :class="{'range-selected': hasRangeSelected}">
     <div class="input-date" @click="toggleCalendar()">{{captions.drop_down}}</div>
-    <div class="blue-down-arrow" @click="toggleCalendar()"></div>
+    <div v-if="hasRangeSelected" class="clear-x" @click="clear()">x</div>
+    <div v-if="!hasRangeSelected" class="blue-down-arrow" @click="toggleCalendar()"></div>
     <div class="calendar" :class="{'calendar-mobile ': isCompact, 'calendar-right-to-left': isRighttoLeft}" v-if="isOpen">
       <div class="calendar-wrap">
         <div class="calendar_month_left" :class="{'calendar-left-mobile': isCompact}" v-if="showMonth">
           <div class="months-text">
-            <i class="left" @click="goPrevMonth"></i>
-            <i class="right" @click="goNextMonth" v-if="isCompact"></i>
+            <i class="left" v-if="canGoPrevMonth" @click="goPrevMonth"></i>
+            <i class="right" @click="goNextMonth" v-if="isCompact && canGoNextMonth"></i>
             {{monthsLocale[activeMonthStart] +' '+ activeYearStart}}</div>
             <ul :class="s.daysWeeks">
               <li v-for="item in shortDaysLocale" :key="item">{{item}}</li>
             </ul>
             <ul v-for="r in 6" :class="[s.days]" :key="r">
               <li :class="[{[s.daysSelected]: isDateSelected(r, i, 'first', startMonthDay, endMonthDate),
-              [s.daysInRange]: isDateInRange(r, i, 'first', startMonthDay, endMonthDate),
-              [s.dateDisabled]: isDateDisabled(r, i, startMonthDay, endMonthDate)}]" v-for="i in numOfDays" :key="i" v-html="getDayCell(r, i, startMonthDay, endMonthDate)"
-                @click="selectFirstItem(r, i)"></li>
+                [s.daysInRange]: isDateInRange(r, i, 'first', startMonthDay, endMonthDate),
+                [s.dateDisabled]: isDateDisabled(r, i, 'first', startMonthDay, endMonthDate)}]"
+                v-for="i in numOfDays" :key="i" v-html="getDayCell(r, i, 'first', startMonthDay, endMonthDate)"
+                @click="(r, i)">
+              </li>
             </ul>
         </div>
         <div class="calendar_month_right" v-if="!isCompact">
           <div class="months-text">
             {{monthsLocale[startNextActiveMonth] +' '+ activeYearEnd}}
-            <i class="right" @click="goNextMonth"></i>
+            <i class="right" v-if="canGoNextMonth" @click="goNextMonth"></i>
           </div>
           <ul :class="s.daysWeeks">
               <li v-for="item in shortDaysLocale" :key="item">{{item}}</li>
@@ -30,8 +33,8 @@
           <ul v-for="r in 6" :class="[s.days]" :key="r">
             <li :class="[{[s.daysSelected]: isDateSelected(r, i, 'second', startNextMonthDay, endNextMonthDate),
             [s.daysInRange]: isDateInRange(r, i, 'second', startNextMonthDay, endNextMonthDate),
-            [s.dateDisabled]: isDateDisabled(r, i, startNextMonthDay, endNextMonthDate)}]"
-                v-for="i in numOfDays" :key="i" v-html="getDayCell(r, i, startNextMonthDay, endNextMonthDate)"
+            [s.dateDisabled]: isDateDisabled(r, i, 'second', startNextMonthDay, endNextMonthDate)}]"
+                v-for="i in numOfDays" :key="i" v-html="getDayCell(r, i, 'second', startNextMonthDay, endNextMonthDate)"
                   @click="selectSecondItem(r, i)"></li>
           </ul>
         </div>
@@ -112,6 +115,11 @@
     background-color: #fff;
     margin: 0;
     padding: 8px 10px 8px 12px;
+  }
+
+  .range-selected {
+    background-color: #0ebeff;
+    color: #fff;
   }
 
   .calendar-title {
@@ -316,6 +324,21 @@
     left: auto;
     right: 10px;
     cursor: pointer;
+
+    display: inline-block;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    border-top: 7px solid #005dcf;
+  }
+
+  .clear-x {
+    border-top-color: #404040;
+    position: absolute;
+    top: 8px;
+    left: auto;
+    right: 10px;
+    cursor: pointer;
+    color: #fff;
   }
 
   .calendar .calendar-head {
